@@ -1,0 +1,101 @@
+name: CI/CD Pipeline for Node.js App with MySQL
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  # Job 1: Run Tests Automatically on Pull Requests
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+  # Job 2: Build Docker Image and Push to Docker Hub
+  build_and_push:
+    needs: test  # Only runs after tests pass
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t luffydone/nodejs-app:$GITHUB_SHA .
+
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push luffydone/nodejs-app:$GITHUB_SHA
+
+  # Job 3: Deploy to Kubernetes Cluster
+  deploy:
+    needs: build_and_push  # Only runs after the Docker image is pushed
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v2
+        with:
+          kubectl-version: 'v1.31'  # Match with your Kubernetes version
+
+      - name: Configure Kubernetes credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # Your AWS region
+
+      - name: Set up kubeconfig
+        run: |
+          aws eks --region us-east-1 update-kubeconfig --name node-pro
+
+      - name: Update Kubernetes Deployment with New Image
+        run: |
+          kubectl set image deployment/nodejs-app nodejs-app=luffydone/nodejs-app:$GITHUB_SHA
+          kubectl rollout status deployment/nodejs-app
+
+      - name: Send Slack Notification on Success
+        if: success()  # Only notify on success
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          slack-token: ${{ secrets.SLACK_API_TOKEN }}
+          channel-id: '#deployments'
+          text: "Deployment of Node.js app version $GITHUB_SHA was successful!"
+
+      - name: Send Slack Notification on Failure
+        if: failure()  # Only notify on failure
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          slack-token: ${{ secrets.SLACK_API_TOKEN }}
+          channel-id: '#deployments'
+          text: "Deployment of Node.js app version $GITHUB_SHA failed."
+
