@@ -1,5 +1,6 @@
 const express = require('express');
 const mysql = require('mysql2');
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -7,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 const db = mysql.createConnection({
   host: 'localhost',       // Change this if using Dockerized MySQL or external DB
   user: 'nodejs_user',     // Replace with actual MySQL user
-  password: 'admin', // Replace with actual password
+  password: 'admin',       // Replace with actual password
   database: 'nodejs_app'   // Replace with actual database name
 });
 
@@ -19,6 +20,13 @@ db.connect(err => {
   }
   console.log('Connected to MySQL as ID ' + db.threadId);
 });
+
+// Middleware to parse JSON bodies in POST requests
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));  // Middleware to parse form data
+
+// Serve static HTML files (form)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Basic route to confirm server is running
 app.get('/', (req, res) => {
@@ -41,11 +49,26 @@ app.get('/users', (req, res) => {
   });
 });
 
-// Endpoint to create a new user (Example)
-app.post('/users', express.json(), (req, res) => {
+// Endpoint to create a new user (POST request from form submission)
+app.post('/users', (req, res) => {
   const { name, email } = req.body;
-  db.query('INSERT INTO users (name, email) VALUES (?, ?)', [name, email], (err, result) => {
+
+  // Input validation
+  if (!name || !email) {
+    return res.status(400).send('Name and email are required');
+  }
+
+  // Validate email format (basic check)
+  const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+  if (!emailPattern.test(email)) {
+    return res.status(400).send('Invalid email format');
+  }
+
+  // Insert the new user into the database using a prepared statement
+  const query = 'INSERT INTO users (name, email) VALUES (?, ?)';
+  db.query(query, [name, email], (err, result) => {
     if (err) {
+      console.error('Error creating user: ', err);
       res.status(500).send('Error creating user');
     } else {
       res.status(201).send(`User created with ID: ${result.insertId}`);
