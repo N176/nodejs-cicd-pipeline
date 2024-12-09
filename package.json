@@ -1,0 +1,19 @@
+{
+    "name": "nodejs-cicd-pipeline",
+    "version": "1.0.0",
+    "description": "CI/CD pipeline example for Node.js",
+    "main": "app.js",
+    "scripts": {
+      "test": "jest",
+      "start": "node app.js"
+    },
+    "dependencies": {
+      "express": "^4.17.1"
+    },
+    "devDependencies": {
+      "jest": "^27.0.0"
+    },
+    "author": "",
+    "license": "ISC"
+  }
+  
