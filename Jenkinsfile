@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        docker { image 'node:16' }  // Use a Node.js Docker image that includes npm
-    }
+    agent any
 
     environment {
         DOCKER_IMAGE = "nodejs-app"  // Default values can be overridden by .env
