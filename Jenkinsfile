@@ -6,13 +6,13 @@ pipeline {
         DOCKER_REGISTRY = "your-dockerhub-username"  // Default values can be overridden by .env
     }
 
+    stages {
         stage('Checkout') {
             steps {
-                // Use the correct branch name (main instead of master)
+                // Ensure you are using the correct branch name (main)
                 git branch: 'main', url: 'https://github.com/N176/nodejs-cicd-pipeline.git'
             }
         }
-
 
         stage('Load Environment Variables') {
             steps {
