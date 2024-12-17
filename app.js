@@ -4,7 +4,6 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-<<<<<<< HEAD
 // Set up middleware to parse POST request data
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -14,18 +13,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // MySQL database connection
 const db = mysql.createConnection({
-  host: process.env.MYSQL_HOST,  // Use the service name 'mysql' from Docker Compose
-  user: process.env.MYSQL_USER,  // 'nodejs_user'
-  password: process.env.MYSQL_PASSWORD, // 'admin'
-  database: process.env.MYSQL_DATABASE // 'nodejs_app'
-=======
-// MySQL database connection
-const db = mysql.createConnection({
   host: 'localhost',       // Change this if using Dockerized MySQL or external DB
   user: 'nodejs_user',     // Replace with actual MySQL user
   password: 'admin',       // Replace with actual password
   database: 'nodejs_app'   // Replace with actual database name
->>>>>>> 938e83b40999f6566c18dcd2e08038421180631d
 });
 
 // Test MySQL connection
@@ -37,18 +28,7 @@ db.connect(err => {
   console.log('Connected to MySQL as ID ' + db.threadId);
 });
 
-<<<<<<< HEAD
 // Serve the index.html form when accessing the root route
-=======
-// Middleware to parse JSON bodies in POST requests
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));  // Middleware to parse form data
-
-// Serve static HTML files (form)
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Basic route to confirm server is running
->>>>>>> 938e83b40999f6566c18dcd2e08038421180631d
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -80,8 +60,6 @@ app.post('/submit', (req, res) => {
   });
 });
 
-<<<<<<< HEAD
-=======
 // Endpoint to fetch users from the MySQL database
 app.get('/users', (req, res) => {
   db.query('SELECT * FROM users', (err, results) => {
@@ -120,9 +98,9 @@ app.post('/users', (req, res) => {
   });
 });
 
->>>>>>> 938e83b40999f6566c18dcd2e08038421180631d
-// Start the server
-app.listen(PORT, () => {
+// Start the server and export it for testing or modularization
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+module.exports = server;  // Export the server
