@@ -214,6 +214,7 @@ pipeline {
         }
     }
 }
+```
 
 ## Key Stages
 
@@ -256,6 +257,7 @@ SSH into the EC2 instance and check the Docker logs if the application is not ru
 
 ```bash
 docker logs nodejs-app
+```
 
 ### 3. Check Build Status in Jenkins
 Jenkins provides a visual interface to check the status of the pipeline runs. You can access the build logs, see the success or failure status, and review the details of each stage in the pipeline. Simply go to your Jenkins dashboard and click on the specific job to view the status and logs.
