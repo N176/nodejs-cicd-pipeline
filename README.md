@@ -1,156 +1,266 @@
-# CI/CD Pipeline for Node.js Application with Docker and Kubernetes (EKS)
+# CI/CD Pipeline for Node.js Application using Jenkins and AWS EC2
 
-This project demonstrates a complete **CI/CD pipeline** for a **Node.js application** using **GitHub Actions**, **Docker**, **AWS EC2**, **Helm**, and **Kubernetes (EKS)**. The pipeline automates the process of testing, building, and deploying the application, ensuring seamless delivery and scalability.
+This project demonstrates a complete **CI/CD pipeline** using **Jenkins** to automate the build, test, and deployment processes for a **Node.js** application. The pipeline deploys the application to an **AWS EC2 instance** using **Docker**, streamlining deployment and reducing human error.
 
----
+## Table of Contents
 
-## 🚀 Project Overview
-
-The goal of this CI/CD pipeline is to automate the entire lifecycle of the Node.js application, from **testing** and **building** to **deployment** on a scalable Kubernetes cluster (EKS). The pipeline also provides real-time **deployment status** updates through **Slack notifications**.
-
-### 🔑 Key Features:
-- **Automatic Testing**: The pipeline runs tests on pull requests to ensure the code is stable and reliable.
-- **Dockerization**: The Node.js application is containerized using **Docker**, and the Docker image is pushed to **Docker Hub**.
-- **AWS EKS Deployment**: The Docker image is deployed to an **AWS EKS Kubernetes cluster** using **Helm**.
-- **Slack Notifications**: Real-time notifications are sent to **Slack** about deployment success or failure.
-
----
-
-## 🏗️ Architecture
-
-### 1. **Node.js Application:**
-A basic Node.js application that exposes a simple API and a health check endpoint for monitoring.
-
-### 2. **CI/CD Pipeline:**
-The pipeline is implemented using **GitHub Actions** and performs the following steps:
-1. **Test** the code using **Jest** on pull requests.
-2. **Build** a Docker image of the Node.js app.
-3. **Push** the Docker image to **Docker Hub**.
-4. **Deploy** the Docker image to **AWS EKS** using **Helm**.
-5. **Send Slack Notifications**: Notifications are sent based on the deployment result.
+- [Project Overview](#project-overview)
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Setup Instructions](#setup-instructions)
+  - [Jenkins Setup](#jenkins-setup)
+  - [AWS EC2 Setup](#aws-ec2-setup)
+  - [GitHub Setup](#github-setup)
+  - [Docker Setup](#docker-setup)
+- [CI/CD Pipeline](#cicd-pipeline)
+- [Running the Pipeline](#running-the-pipeline)
+- [Monitoring and Troubleshooting](#monitoring-and-troubleshooting)
+- [License](#license)
 
 ---
 
-## 📜 Setup Instructions
+## Project Overview
 
-Follow these steps to set up the **CI/CD pipeline**, **Dockerization**, **Kubernetes deployment**, and **Slack notifications**.
+This project automates the process of **building**, **testing**, and **deploying** a Node.js application to an **AWS EC2 instance** using **Docker containers**. The CI/CD pipeline is powered by **Jenkins**, and it eliminates the manual steps of deployment to ensure consistency and reliability.
 
-### 1. **Docker Hub Setup**
-To push Docker images to Docker Hub, follow these steps:
+### Key Features:
+- **Automated Testing**: Runs tests (e.g., Jest) on the application code during the CI process.
+- **Dockerization**: Packages the Node.js application into a Docker container.
+- **AWS EC2 Deployment**: Deploys the Docker container to an AWS EC2 instance.
+- **Automated Builds**: Builds and tests the application automatically whenever new code is pushed to the repository.
 
-1. **Create a Docker Hub Account**: If you don't have one, create an account at [Docker Hub](https://hub.docker.com/).
-2. **Create GitHub Secrets for Docker Hub**: Add your Docker Hub credentials to GitHub secrets. These credentials are required to authenticate with Docker Hub in the pipeline:
-   - `DOCKER_USERNAME`: Your Docker Hub username.
-   - `DOCKER_PASSWORD`: Your Docker Hub password.
+---
 
-```bash
-DOCKER_USERNAME=<your-dockerhub-username>
-DOCKER_PASSWORD=<your-dockerhub-password>
+## Architecture
 
+1. **Node.js Application**:
+   - A simple Node.js application is used for the demonstration.
+   
+2. **Jenkins CI/CD Pipeline**:
+   - Jenkins is responsible for orchestrating the entire CI/CD process, from building the app to deploying it to EC2.
+   
+3. **Docker**:
+   - The application is packaged as a Docker image, ensuring easy deployment and scalability.
 
-## 2. AWS EC2 Setup
+4. **AWS EC2**:
+   - The Docker container is deployed to an AWS EC2 instance, providing a scalable environment for production.
 
-### Create an EC2 Instance:
-Set up an AWS EC2 instance running Ubuntu. You can choose a `t2.micro` instance for testing.
+---
 
-### Install Docker on EC2:
-Run the following commands to install Docker on the EC2 instance:
+## Prerequisites
 
-```bash
-sudo apt-get update
-sudo apt-get install docker.io
-sudo systemctl start docker
-sudo systemctl enable docker
+Before setting up the pipeline, make sure you have the following tools and services:
 
-## 3. AWS EKS Setup
+- **Jenkins**: Installed and configured on a server or EC2 instance.
+- **Docker**: Installed on both Jenkins and EC2 instances.
+- **GitHub**: A repository containing your Node.js application.
+- **AWS**: An active AWS account with an EC2 instance running.
+- **SSH Access**: SSH access set up between Jenkins and the EC2 instance.
 
-### Create an EKS Cluster:
-Follow the [AWS EKS documentation](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html) to set up an EKS cluster.
+---
 
-### Configure kubectl:
-After setting up the EKS cluster, configure `kubectl` to connect to it:
+## Setup Instructions
 
-```bash
-aws eks --region <region> update-kubeconfig --name <eks-cluster-name>
+### Jenkins Setup
 
-## 4. GitHub Secrets for Kubernetes and EKS
+1. **Install Jenkins**:
+   - You can install Jenkins on any server or EC2 instance. Follow the [official Jenkins installation guide](https://www.jenkins.io/doc/book/installing/) to get started.
 
-### Add AWS Credentials to GitHub Secrets:
-These credentials are required to authenticate with AWS EKS. Add the following secrets in GitHub:
+2. **Install Jenkins Plugins**:
+   - Install the following plugins via Jenkins > Manage Jenkins > Manage Plugins:
+     - Docker Pipeline
+     - GitHub Integration
+     - AWS Credentials Plugin
 
-```bash
-AWS_ACCESS_KEY_ID=<aws-access-key-id>
-AWS_SECRET_ACCESS_KEY=<aws-secret-access-key>
-KUBERNETES_CLUSTER_NAME=<eks-cluster-name>
-KUBERNETES_REGION=<region>
+3. **Set Up Credentials in Jenkins**:
+   - **GitHub Credentials**: Add your GitHub access token in Jenkins to authenticate with GitHub.
+   - **AWS Credentials**: Add your AWS access and secret keys in Jenkins as credentials for deployment.
+   - **DockerHub Credentials**: Add DockerHub username and password to Jenkins for pushing Docker images.
 
-### Slack Webhook:
-Set up a Slack webhook for deployment notifications and add it to GitHub secrets as `SLACK_WEBHOOK_URL`.
+### AWS EC2 Setup
 
-## 5. Kubernetes Configuration (Helm)
+1. **Launch EC2 Instance**:
+   - Create an EC2 instance (e.g., `t2.micro` for testing).
+   - Ensure the security group allows inbound traffic on port 22 (SSH) and 80 (HTTP).
+   
+2. **Install Docker on EC2**:
+   - SSH into the EC2 instance and run the following commands to install Docker:
+     ```bash
+     sudo apt-get update
+     sudo apt-get install docker.io -y
+     sudo systemctl start docker
+     sudo systemctl enable docker
+     ```
+   
+3. **Set Up SSH Access**:
+   - Copy your Jenkins private key to the EC2 instance for SSH access.
+   - Add the public key to the EC2 instance’s `~/.ssh/authorized_keys` file to enable Jenkins to SSH into it.
 
-Create Helm charts for deployment and ensure the following Kubernetes configurations are stored in the `k8s` folder:
+### GitHub Setup
 
-- **Node.js Deployment**: `nodejs-app-deployment.yaml`
-- **MySQL Deployment**: `mysql-deployment.yaml`
-- **Kubernetes Service**: `service.yaml`
+1. **Create GitHub Repository**:
+   - Create a GitHub repository to host your Node.js application code.
+   - Push the code to the repository if it’s not already there.
 
-## CI/CD Pipeline Workflow (GitHub Actions)
+2. **Create GitHub Webhook**:
+   - Go to **GitHub > Repository Settings > Webhooks**.
+   - Add a new webhook with the Jenkins webhook URL (e.g., `http://<your-jenkins-server>:8080/github-webhook/`).
 
-The CI/CD pipeline is implemented using GitHub Actions. The configuration is defined in `.github/workflows/ci-cd-pipeline.yml`.
+### Docker Setup
 
-### GitHub Actions Workflow Overview
+1. **Create Dockerfile**:
+   - Add a `Dockerfile` in the root of your Node.js project. Here’s an example:
+     ```dockerfile
+     FROM node:14
 
-The pipeline includes the following steps:
+     WORKDIR /app
 
-### 1. Test on Pull Requests:
-- The pipeline is triggered when a pull request is opened or updated.
-- The tests are executed using Jest to ensure the functionality of the code.
+     COPY package*.json ./
 
-### 2. Build and Push Docker Image:
-The pipeline builds a Docker image from the `Dockerfile` and pushes it to Docker Hub. It tags the image with the latest or the appropriate version.
+     RUN npm install
 
-```yaml
-- name: Build Docker image
-  run: docker build -t ${{ secrets.DOCKER_USERNAME }}/nodejs-app:${{ github.sha }} .
+     COPY . .
 
-- name: Push Docker image
-  run: docker push ${{ secrets.DOCKER_USERNAME }}/nodejs-app:${{ github.sha }}
+     EXPOSE 3000
+     CMD ["node", "app.js"]
+     ```
 
-### 3. Deploy to Kubernetes (EKS):
-The pipeline deploys the Docker image to AWS EKS using Helm. This is done by applying the Helm chart to the Kubernetes cluster.
+2. **Docker Hub Login**:
+   - Ensure Jenkins has credentials to log in to Docker Hub for pushing images.
 
-```yaml
-- name: Deploy to Kubernetes (EKS)
-  run: |
-    helm upgrade --install nodejs-app ./k8s --set image.tag=${{ github.sha }}
+---
 
-### 4. Send Notifications:
-Based on the result of the deployment, a Slack notification is sent to a specified channel.
+## CI/CD Pipeline
 
-```yaml
-- name: Send Slack notification
-  if: success()
-  run: |
-    curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment Successful"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+This project uses a **Jenkinsfile** to define the CI/CD pipeline. The pipeline automates the following stages:
 
-If the deployment fails, a different message is sent indicating failure.
+### Jenkinsfile Example
+
+```groovy
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "nodejs-app"
+        DOCKER_REGISTRY = "your-dockerhub-username"
+        AWS_CREDENTIALS = credentials('AWS_Credentials')
+        EC2_INSTANCE_IP = 'your-ec2-ip'
+        EC2_USER = 'ubuntu'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/your-username/your-repository.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    sh 'npm test'  // Run tests using Jest or another test framework
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t $DOCKER_REGISTRY/$DOCKER_IMAGE:${GIT_COMMIT} .'
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'DockerHub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+                        sh 'docker push $DOCKER_REGISTRY/$DOCKER_IMAGE:${GIT_COMMIT}'
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                script {
+                    withCredentials([aws(credentialsId: 'AWS_Credentials')]) {
+                        sh """
+                            ssh -i /path/to/your/private-key -o StrictHostKeyChecking=no $EC2_USER@$EC2_INSTANCE_IP << 'EOF'
+                            docker pull $DOCKER_REGISTRY/$DOCKER_IMAGE:${GIT_COMMIT}
+                            docker stop nodejs-app || true
+                            docker rm nodejs-app || true
+                            docker run -d --name nodejs-app -p 80:3000 $DOCKER_REGISTRY/$DOCKER_IMAGE:${GIT_COMMIT}
+                            EOF
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
+
+## Key Stages
+
+- **Checkout**: Pulls the code from the GitHub repository.
+- **Install Dependencies**: Installs Node.js dependencies.
+- **Run Tests**: Runs tests using a test suite like Jest.
+- **Build Docker Image**: Builds a Docker image for the application.
+- **Push Docker Image**: Pushes the built Docker image to Docker Hub.
+- **Deploy to EC2**: SSH into the EC2 instance and deploy the Docker container.
+- **Cleanup**: Cleans up the Jenkins workspace after the pipeline runs.
+
+---
 
 ## Running the Pipeline
 
 ### 1. Push Code to GitHub
-When you push code to the `main` branch, GitHub Actions will automatically trigger the pipeline to:
+Whenever you push code to your GitHub repository, the pipeline will be triggered automatically.
 
+### 2. Jenkins Pipeline Execution
+Jenkins will automatically:
+- Check out the code.
+- Install dependencies.
 - Run tests.
-- Build and push Docker images to Docker Hub.
-- Deploy the application to AWS EKS using Helm.
-- Send Slack notifications for success or failure.
+- Build the Docker image.
+- Push the Docker image to Docker Hub.
+- Deploy it to your EC2 instance.
 
-### 2. Monitor the Deployment
-You can monitor the pipeline status through the GitHub Actions UI in your GitHub repository.
+### 3. Monitor Deployment
+You can monitor the build and deployment process directly in Jenkins.
 
-For Kubernetes resources, use `kubectl` to check the status of your application:
+---
+
+## Monitoring and Troubleshooting
+
+### 1. Jenkins Logs
+View the logs for each stage of the pipeline in Jenkins to troubleshoot any errors.
+
+### 2. EC2 Logs
+SSH into the EC2 instance and check the Docker logs if the application is not running as expected:
 
 ```bash
-kubectl get pods
-kubectl get services
+docker logs nodejs-app
+
+### 3. Check Build Status in Jenkins
+Jenkins provides a visual interface to check the status of the pipeline runs. You can access the build logs, see the success or failure status, and review the details of each stage in the pipeline. Simply go to your Jenkins dashboard and click on the specific job to view the status and logs.
+
+---
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
